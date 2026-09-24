@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum UserRole {
+  ADMIN
+  EVALUATOR
+}
+
+enum ReadinessStatus {
+  INCOMPLETE
+  READY
+  NEARLY_READY
+  DEVELOPING
+  NEEDS_PREPARATION
+}
+
+model Tenant {
+  id     String       @id @default(uuid())
+  name   String
+  status TenantStatus @default(ACTIVE)
+
+  users              User[]
+  students           Student[]
+  idempotencyRecords IdempotencyRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  name         String
+  email        String
+  passwordHash String
+  role         UserRole @default(EVALUATOR)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  evaluatedAttempts Attempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Student {
+  id              String          @id @default(uuid())
+  tenantId        String
+  name            String
+  email           String
+  currentScore    Float?
+  readinessStatus ReadinessStatus @default(INCOMPLETE)
+  version         Int             @default(1)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  attempts Attempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([tenantId, readinessStatus])
+  @@index([tenantId, name, id])
+}
+
+model Competency {
+  id       String  @id @default(uuid())
+  key      String  @unique
+  name     String
+  weight   Int
+  required Boolean @default(true)
+
+  attempts Attempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attempt {
+  id           String   @id @default(uuid())
+  studentId    String
+  competencyId String
+  evaluatorId  String
+  score        Float
+  submittedAt  DateTime @default(now())
+  voided       Boolean  @default(false)
+  requestId    String?
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  competency Competency @relation(fields: [competencyId], references: [id], onDelete: Restrict)
+
+  evaluator User @relation(fields: [evaluatorId], references: [id], onDelete: Restrict)
+
+  @@index([studentId, competencyId, submittedAt, id])
+  @@index([studentId, voided])
+  @@index([evaluatorId])
+}
+
+model IdempotencyRecord {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  key                String
+  requestFingerprint String
+  responseStatus     Int
+  responseJson       Json
+  expiresAt          DateTime
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, key])
+  @@index([tenantId, expiresAt])
+}

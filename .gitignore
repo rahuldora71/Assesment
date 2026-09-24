@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+*.log
+coverage/
+.DS_Store
+.agents/
+.claude/
+.cursor/
+.devin/
+backend/dist/
+backend/node_modules/
+backend/.env
+backend/src/generated/
+frontend/dist/
+frontend/node_modules/
