@@ -67,12 +67,13 @@ export async function createAttempt(input: CreateAttemptInput) {
         throw new AppError(404, "NOT_FOUND", "Student not found");
       }
 
-      // 3. Validate Competency (support by id or key)
+      // 3. Validate Competency (support by id, case-insensitive key, or name)
       const competency = await tx.competency.findFirst({
         where: {
           OR: [
             { id: input.competency },
-            { key: input.competency },
+            { key: { equals: input.competency, mode: "insensitive" } },
+            { name: { equals: input.competency, mode: "insensitive" } },
           ],
         },
       });
