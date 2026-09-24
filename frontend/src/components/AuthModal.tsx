@@ -133,6 +133,63 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
+        {/* Demo / Quick Test Credentials Box */}
+        <div className="mb-4 p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-xs space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-indigo-300 flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5 text-indigo-400" />
+              Demo / Test Credentials
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">
+              Ready to Test
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono bg-zinc-950/70 p-2.5 rounded-lg border border-zinc-800/90">
+            <div>
+              <span className="text-zinc-500 block text-[10px]">Email (Admin)</span>
+              <span className="text-zinc-200 select-all">admin@apex.edu</span>
+            </div>
+            <div>
+              <span className="text-zinc-500 block text-[10px]">Password</span>
+              <span className="text-zinc-200 select-all">Password123!</span>
+            </div>
+            <div className="col-span-2 pt-1.5 border-t border-zinc-800/80 flex items-center justify-between text-[10px]">
+              <span className="text-zinc-400">Organization:</span>
+              <span className="text-indigo-300 font-medium">Apex Technical Institute</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setEmail("admin@apex.edu");
+                setPassword("Password123!");
+                setTenantId("");
+                setError(null);
+              }}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/30 text-indigo-200 font-medium text-[11px] transition text-center"
+            >
+              ⚡ Fill Admin Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setEmail("evaluator@apex.edu");
+                setPassword("Password123!");
+                setTenantId("");
+                setError(null);
+              }}
+              className="flex-1 py-1.5 px-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 font-medium text-[11px] transition text-center"
+            >
+              ⚡ Fill Evaluator Demo
+            </button>
+          </div>
+        </div>
+
         {/* Global Error Banner */}
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">

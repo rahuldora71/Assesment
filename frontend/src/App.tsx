@@ -8,11 +8,12 @@ import { MetricsDashboard } from "./components/MetricsDashboard.js";
 import { AuthModal } from "./components/AuthModal.js";
 import { api, getAccessToken, ApiError } from "./api/client.js";
 import type { User, StudentListItem, StudentDetail, Pagination } from "./types/index.js";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2, Key, ShieldCheck } from "lucide-react";
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Active view tab: "students" or "metrics"
@@ -186,6 +187,37 @@ export function App() {
     setIsAuthModalOpen(true);
   };
 
+  const handleQuickDemoLogin = async () => {
+    setDemoLoading(true);
+    try {
+      try {
+        const res = await api.auth.login({
+          email: "admin@apex.edu",
+          password: "Password123!",
+        });
+        setCurrentUser(res.user);
+        return;
+      } catch {
+        // If demo tenant is not yet initialized on this instance, register it then login
+        await api.auth.register({
+          tenantName: "Apex Technical Institute",
+          name: "Campus Admin",
+          email: "admin@apex.edu",
+          password: "Password123!",
+        });
+        const res = await api.auth.login({
+          email: "admin@apex.edu",
+          password: "Password123!",
+        });
+        setCurrentUser(res.user);
+      }
+    } catch {
+      setIsAuthModalOpen(true);
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       {/* Navbar */}
@@ -202,22 +234,80 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!currentUser && !authLoading ? (
-          <div className="max-w-xl mx-auto my-16 p-8 rounded-3xl bg-zinc-900 border border-zinc-800 text-center shadow-2xl space-y-4">
+          <div className="max-w-xl mx-auto my-10 p-7 rounded-3xl bg-zinc-900 border border-zinc-800 text-center shadow-2xl space-y-6">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Student Readiness Control Center
-            </h1>
-            <p className="text-sm text-zinc-400">
-              Sign in with your organization's tenant credentials to evaluate candidates, record competency attempts, and monitor operational telemetry.
-            </p>
-            <div className="pt-2">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Student Readiness Control Center
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-400 mt-2">
+                Multi-tenant placement assessment platform with real-time competency evaluations, idempotent attempts, and telemetry logging.
+              </p>
+            </div>
+
+            {/* Quick Test Credentials Box */}
+            <div className="p-4 rounded-2xl bg-zinc-950 border border-indigo-500/30 text-left space-y-3 shadow-inner">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-md bg-indigo-500/20 text-indigo-400">
+                    <Key className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-200">Test & Evaluation Credentials</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 font-medium flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  Pre-configured
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 font-mono">ORGANIZATION / TENANT</div>
+                  <div className="font-medium text-zinc-200 mt-0.5">Apex Technical Institute</div>
+                </div>
+                <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 font-mono">ROLE</div>
+                  <div className="font-medium text-indigo-400 mt-0.5">Campus Administrator</div>
+                </div>
+                <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 font-mono">EMAIL (ADMIN)</div>
+                  <div className="font-mono text-zinc-200 mt-0.5 select-all font-semibold">admin@apex.edu</div>
+                </div>
+                <div className="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800">
+                  <div className="text-[10px] text-zinc-500 font-mono">PASSWORD</div>
+                  <div className="font-mono text-zinc-200 mt-0.5 select-all font-semibold">Password123!</div>
+                </div>
+              </div>
+
+              <div className="pt-1 text-[11px] text-zinc-400 flex items-center justify-between">
+                <span>Tenant ID: <span className="font-mono text-indigo-300">Auto-derived from email</span></span>
+                <span className="text-zinc-500 text-[10px]">(or enter UUID)</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              <button
+                onClick={handleQuickDemoLogin}
+                disabled={demoLoading}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xl shadow-indigo-600/25 transition disabled:opacity-50"
+              >
+                {demoLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <span>⚡ 1-Click Demo Sign In</span>
+                )}
+              </button>
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-xl shadow-indigo-600/20 transition"
+                className="px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium text-xs border border-zinc-700 transition"
               >
-                Sign In or Register Tenant
+                Custom Sign In / Register
               </button>
             </div>
           </div>
